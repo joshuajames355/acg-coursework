@@ -1,4 +1,4 @@
-import { Vector2, Color, DataTexture, RGBFormat } from 'three';
+import { Vector2, Color, DataTexture, RGBFormat, Mesh, MeshBasicMaterial, PlaneGeometry, DoubleSide } from 'three';
 
 //This function applies a single octave of perlin noise
 export function perlin_noise(x: number, y: number): number {
@@ -12,11 +12,6 @@ export function perlin_noise(x: number, y: number): number {
         new Vector2(lower_x + 1, lower_y),
         new Vector2(lower_x + 1, lower_y + 1)
     ]
-
-    //console.log("start perlin")
-    //console.log(lower_x)
-    //console.log(vectors[1])
-    //console.log(vectors[1].x)
 
     var current_vector = new Vector2(x, y);
 
@@ -40,20 +35,24 @@ export function perlin_noise(x: number, y: number): number {
 function generate_gradient_vector(x: number, y: number): Vector2 {
     var vectors_temp = [[-1, 1], [1, 1], [-1, -1], [1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
 
-    //console.log("start")
-    //console.log("!!x: " + x.toString() + " y: " + y.toString())
-    //console.log((x + 20) * ((y + 1) << 3))
-    //console.log(hash((x + 20) * ((y + 1) << 3)));
-
     return new Vector2().fromArray(vectors_temp[hash((x + 20) * ((y + 1) << 3)) % 8]); //an arbritary combination of x y and z
 }
 
 //generates a random number given a seed
-//expects seed to be a signed integer < 0x7FFFFFFF
+//expects seed to be a 32bit signed integer, ie < 0x7FFFFFFF
 function hash(x: number) {
     x = ((x >> 16) ^ x) * 0x45d9f3b % 0x7FFFFFFF;
     x = ((x >> 16) ^ x) * 0x45d9f3b % 0x7FFFFFFF;
     return (x >> 16) ^ x % 0x7FFFFFFF;
+}
+
+function perlin_noise_multiple_octaves(x: number, y: number, num_octaves: number = 4, falloff: number = 0.5) {
+    var result: number = 0;
+    for (var num = 0; num < num_octaves; num++) {
+        var ratio = 2 ** num;
+        result += perlin_noise(x * ratio, y * ratio) * (falloff ** num);
+    }
+    return result;
 }
 
 
@@ -61,7 +60,7 @@ var interpolate = (a: number, b: number, weight: number) => (b - a) * weight + a
 var fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);  // 6t^5 - 15t^4 + 10t^3
 
 //based off https://threejs.org/docs/#api/en/textures/DataTexture example
-export function generate_perlin_texture() {
+function generate_perlin_texture() {
     // create a buffer with color data
 
     const width = 512;
@@ -77,7 +76,8 @@ export function generate_perlin_texture() {
         var x = i % width;
         var y = Math.floor(i / width);
 
-        var colour = ((perlin_noise(x / 16.0, y / 16.0) + perlin_noise(x / 4.0, y / 4.0) * 0) * 0.5 + 1) * 255;
+        var colour = ((perlin_noise_multiple_octaves(x / 64, y / 64)) * 0.5 + 1) * 150;
+        //console.log(colour);
 
         data[stride] = colour;
         data[stride + 1] = colour;
@@ -88,4 +88,13 @@ export function generate_perlin_texture() {
     // used the buffer to create a DataTexture
 
     return new DataTexture(data, width, height, RGBFormat);
+}
+
+// creates a plane textured with a perlin texture,
+// used for debugging
+export function perlin_texture_plane() {
+    const geometry = new PlaneGeometry(1, 1);
+    const material = new MeshBasicMaterial({ map: generate_perlin_texture(), side: DoubleSide });
+
+    return new Mesh(geometry, material);
 }

@@ -1,6 +1,6 @@
 
-import { Scene, PerspectiveCamera, WebGLRenderer, PlaneGeometry, MeshBasicMaterial, Mesh, DoubleSide } from 'three';
-import { perlin_noise, generate_perlin_texture } from "./generator"
+import { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+import { perlin_noise, perlin_texture_plane } from "./generator"
 
 const scene = new Scene();
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -9,11 +9,7 @@ const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const geometry = new PlaneGeometry(1, 1);
-const material = new MeshBasicMaterial({ map: generate_perlin_texture(), side: DoubleSide });
-//const material = new MeshBasicMaterial({ color: 0xffff00, side: DoubleSide });
-const plane = new Mesh(geometry, material);
-scene.add(plane);
+scene.add(perlin_texture_plane());
 camera.position.z = 1;
 
 var frame_times: number[] = [];
