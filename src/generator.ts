@@ -1,4 +1,4 @@
-import { Vector2, Color, DataTexture, RGBFormat, Mesh, MeshBasicMaterial, PlaneGeometry, DoubleSide } from 'three';
+import { Vector2, Color, DataTexture, RGBFormat, Mesh, MeshBasicMaterial, PlaneGeometry, DoubleSide, InstancedMesh, BoxGeometry, Vector3, Matrix4, MeshPhongMaterial } from 'three';
 
 //This function applies a single octave of perlin noise
 export function perlin_noise(x: number, y: number): number {
@@ -68,7 +68,6 @@ function generate_perlin_texture() {
 
     const size = width * height;
     const data = new Uint8Array(3 * size);
-    const color = new Color(0xffffff);
 
     for (let i = 0; i < size; i++) {
 
@@ -97,4 +96,17 @@ export function perlin_texture_plane() {
     const material = new MeshBasicMaterial({ map: generate_perlin_texture(), side: DoubleSide });
 
     return new Mesh(geometry, material);
+}
+
+export function generate_terrain(width: number, height: number, offset: Vector3 = new Vector3(0, 0, 0)) {
+    var mesh = new InstancedMesh(new BoxGeometry(1, 1, 1), new MeshPhongMaterial({ color: 0x348C31 }), width * height);
+    for (let i = 0; i < width * height; i++) {
+        var x = i % width + offset.x;
+        var y = Math.floor(i / width) + offset.z;
+        var z = ((perlin_noise_multiple_octaves(x / 64, y / 64, 4, 0.3)) * 0.5 + 1) * 40 + offset.y;
+
+        var matrix = new Matrix4().makeTranslation(x, z, y);
+        mesh.setMatrixAt(i, matrix);
+    }
+    return mesh;
 }
