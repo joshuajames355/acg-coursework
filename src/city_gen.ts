@@ -1,4 +1,4 @@
-import { perlin_noise_multiple_octaves } from "./generator";
+import { generate_terrain_parametric, perlin_noise_multiple_octaves } from "./generator";
 import { Scene, Vector3, Vector2, MeshPhongMaterial, InstancedMesh, Matrix4, BoxGeometry, GreaterDepth } from "three";
 import { randInt } from "three/src/math/MathUtils";
 import { road_diffuse, road_model, road_normal } from "./assets";
@@ -48,7 +48,10 @@ export default function generate_city(scene: Scene) {
 
     //todo, correction pass
 
-    var terrain_mesh = terrain_to_mesh(terrain, OFFSET);
+    //var terrain_mesh = terrain_to_mesh(terrain, OFFSET);
+    //scene.add(terrain_mesh);
+    var terrain_mesh = generate_terrain_parametric(WIDTH, HEIGHT, OFFSET);
+    console.log(terrain_mesh);
     scene.add(terrain_mesh);
     //step 2---------------------------------------------------------------------------------------------------------------------
     console.log("City Generation Step 2: Placing Centre points...");
@@ -203,7 +206,7 @@ export default function generate_city(scene: Scene) {
                 var mesh_tmp = road.clone();
                 mesh_tmp.translateX(x * GRID_RATIO + OFFSET.x);
                 mesh_tmp.translateZ(y * GRID_RATIO + OFFSET.z);
-                mesh_tmp.translateY(terrain[x * GRID_RATIO][y * GRID_RATIO] + OFFSET.y + 2);
+                mesh_tmp.translateY(terrain[x * GRID_RATIO][y * GRID_RATIO] + OFFSET.y + 1);
                 scene.add(mesh_tmp);
             }
         }

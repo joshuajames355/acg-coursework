@@ -1,4 +1,21 @@
-import { Vector2, Color, DataTexture, RGBFormat, Mesh, MeshBasicMaterial, PlaneGeometry, DoubleSide, InstancedMesh, BoxGeometry, Vector3, Matrix4, MeshPhongMaterial } from 'three';
+import {
+    Vector2,
+    Color,
+    DataTexture,
+    RGBFormat,
+    Mesh,
+    MeshBasicMaterial,
+    PlaneGeometry,
+    DoubleSide,
+    Vector3,
+    BoxGeometry,
+    InstancedMesh,
+    MeshPhongMaterial,
+    Matrix4,
+    BackSide,
+} from "three";
+
+import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
 
 //This function applies a single octave of perlin noise
 export function perlin_noise(x: number, y: number): number {
@@ -10,8 +27,8 @@ export function perlin_noise(x: number, y: number): number {
         new Vector2(lower_x, lower_y),
         new Vector2(lower_x, lower_y + 1),
         new Vector2(lower_x + 1, lower_y),
-        new Vector2(lower_x + 1, lower_y + 1)
-    ]
+        new Vector2(lower_x + 1, lower_y + 1),
+    ];
 
     var current_vector = new Vector2(x, y);
 
@@ -29,11 +46,20 @@ export function perlin_noise(x: number, y: number): number {
 
     var pair1 = interpolate(a1, a2, fade(y - lower_y));
     var pair2 = interpolate(a3, a4, fade(y - lower_y));
-    return interpolate(pair1, pair2, fade(x - lower_x))
+    return interpolate(pair1, pair2, fade(x - lower_x));
 }
 
 function generate_gradient_vector(x: number, y: number): Vector2 {
-    var vectors_temp = [[-1, 1], [1, 1], [-1, -1], [1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+    var vectors_temp = [
+        [-1, 1],
+        [1, 1],
+        [-1, -1],
+        [1, -1],
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+    ];
 
     return new Vector2().fromArray(vectors_temp[hash((x + 20) * ((y + 1) << 3)) % 8]); //an arbritary combination of x y and z
 }
@@ -41,23 +67,22 @@ function generate_gradient_vector(x: number, y: number): Vector2 {
 //generates a random number given a seed
 //expects seed to be a 32bit signed integer, ie < 0x7FFFFFFF
 function hash(x: number) {
-    x = ((x >> 16) ^ x) * 0x45d9f3b % 0x7FFFFFFF;
-    x = ((x >> 16) ^ x) * 0x45d9f3b % 0x7FFFFFFF;
-    return (x >> 16) ^ x % 0x7FFFFFFF;
+    x = (((x >> 16) ^ x) * 0x45d9f3b) % 0x7fffffff;
+    x = (((x >> 16) ^ x) * 0x45d9f3b) % 0x7fffffff;
+    return (x >> 16) ^ x % 0x7fffffff;
 }
 
-function perlin_noise_multiple_octaves(x: number, y: number, num_octaves: number = 4, falloff: number = 0.5) {
+export function perlin_noise_multiple_octaves(x: number, y: number, num_octaves: number = 4, falloff: number = 0.5) {
     var result: number = 0;
     for (var num = 0; num < num_octaves; num++) {
         var ratio = 2 ** num;
-        result += perlin_noise(x * ratio, y * ratio) * (falloff ** num);
+        result += perlin_noise(x * ratio, y * ratio) * falloff ** num;
     }
     return result;
 }
 
-
 var interpolate = (a: number, b: number, weight: number) => (b - a) * weight + a; //interpolates from a to b
-var fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);  // 6t^5 - 15t^4 + 10t^3
+var fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10); // 6t^5 - 15t^4 + 10t^3
 
 //based off https://threejs.org/docs/#api/en/textures/DataTexture example
 function generate_perlin_texture() {
@@ -70,18 +95,16 @@ function generate_perlin_texture() {
     const data = new Uint8Array(3 * size);
 
     for (let i = 0; i < size; i++) {
-
         const stride = i * 3;
         var x = i % width;
         var y = Math.floor(i / width);
 
-        var colour = ((perlin_noise_multiple_octaves(x / 64, y / 64)) * 0.5 + 1) * 150;
+        var colour = (perlin_noise_multiple_octaves(x / 64, y / 64) * 0.5 + 1) * 150;
         //console.log(colour);
 
         data[stride] = colour;
         data[stride + 1] = colour;
         data[stride + 2] = colour;
-
     }
 
     // used the buffer to create a DataTexture
@@ -93,20 +116,42 @@ function generate_perlin_texture() {
 // used for debugging
 export function perlin_texture_plane() {
     const geometry = new PlaneGeometry(1, 1);
-    const material = new MeshBasicMaterial({ map: generate_perlin_texture(), side: DoubleSide });
+    const material = new MeshBasicMaterial({
+        map: generate_perlin_texture(),
+        side: DoubleSide,
+    });
 
     return new Mesh(geometry, material);
 }
 
 export function generate_terrain(width: number, height: number, offset: Vector3 = new Vector3(0, 0, 0)) {
-    var mesh = new InstancedMesh(new BoxGeometry(1, 1, 1), new MeshPhongMaterial({ color: 0x348C31 }), width * height);
+    var mesh = new InstancedMesh(new BoxGeometry(1, 1, 1), new MeshPhongMaterial({ color: 0x348c31 }), width * height);
     for (let i = 0; i < width * height; i++) {
-        var x = i % width + offset.x;
+        var x = (i % width) + offset.x;
         var y = Math.floor(i / width) + offset.z;
-        var z = ((perlin_noise_multiple_octaves(x / 64, y / 64, 4, 0.3)) * 0.5 + 1) * 40 + offset.y;
+        var z = (perlin_noise_multiple_octaves(x / 256, y / 256, 4, 0.3) * 0.5 + 1) * 40 + offset.y;
 
         var matrix = new Matrix4().makeTranslation(x, z, y);
         mesh.setMatrixAt(i, matrix);
     }
+    return mesh;
+}
+
+export function generate_terrain_parametric(width: number, height: number, offset: Vector3 = new Vector3(0, 0, 0)) {
+    var geometry = new ParametricGeometry(
+        (u: number, v: number, y: Vector3) => {
+            y.x = u * width;
+            y.y = (perlin_noise_multiple_octaves(u * 4, v * 4, 4, 0.3) * 0.5 + 1) * 40;
+            y.z = v * height;
+        },
+        128,
+        128
+    );
+    var mat = new MeshPhongMaterial({ color: 0x348c31 });
+    mat.side = BackSide;
+    var mesh = new Mesh(geometry, mat);
+    mesh.translateX(offset.x);
+    mesh.translateY(offset.y);
+    mesh.translateZ(offset.z);
     return mesh;
 }
