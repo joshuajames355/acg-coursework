@@ -21,3 +21,13 @@ tex_loader.load("/art/road/normal.png", function (normal_teture) {
     normal_teture.flipY = false;
     road_normal = normal_teture;
 });
+
+export var house_model: Mesh;
+export var house_diffuse: Texture;
+gltf_loader.load("/art/house/house.glb", function (gltf) {
+    house_model = gltf.scene.children[0] as Mesh;
+});
+tex_loader.load("/art/house/diffus.png", function (tex) {
+    tex.flipY = false;
+    house_diffuse = tex;
+});

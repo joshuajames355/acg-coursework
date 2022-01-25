@@ -1,11 +1,11 @@
 //generates a random building based on some parameters and adds to the scene
 
-import { BoxGeometry, Mesh, MeshBasicMaterial, Object3D, Scene, Vector3 } from "three";
+import { BoxGeometry, Mesh, MeshBasicMaterial, MeshPhongMaterial, Object3D, Scene, Vector3 } from "three";
 import { randFloat } from "three/src/math/MathUtils";
-import generate_city from "./city_gen";
+import { house_diffuse, house_model } from "./assets";
 
 export function generate_building(distance_to_centre: number, zoning: number, scene: Scene, pos: Vector3) {
-    var height = 50 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 25);
+    var height = 25 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 25);
 
     if (height < 4) {
         scene.add(generate_house(pos));
@@ -29,11 +29,18 @@ function generate_skyscraper(height: number, pos: Vector3): Object3D {
 }
 
 function generate_house(pos: Vector3) {
-    var box = new BoxGeometry(1, 2, 1); //low density residential
-    const material = new MeshBasicMaterial();
-    const mesh = new Mesh(box, material);
-    mesh.translateX(pos.x);
-    mesh.translateY(pos.y);
-    mesh.translateZ(pos.z);
+    var mesh = house_model; //low density residential
+    console.log("house!");
+    console.log(pos);
+    const material = new MeshPhongMaterial();
+    material.specular.setScalar(0);
+    material.map = house_diffuse;
+    mesh.material = material;
+    mesh.scale.setScalar(2);
+    mesh.position.setX(pos.x);
+    mesh.position.setY(pos.y);
+    mesh.position.setZ(pos.z);
+    mesh.geometry.computeBoundingSphere();
+    mesh.frustumCulled = false;
     return mesh;
 }
