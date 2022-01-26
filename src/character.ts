@@ -23,7 +23,7 @@ const _lockEvent = { type: "lock" };
 const _unlockEvent = { type: "unlock" };
 
 const _PI_2 = Math.PI / 2;
-const _speed = 0.2;
+const _speed = 0.4;
 
 enum MovementState {
     Idle,
@@ -60,6 +60,8 @@ export class ThirdPersonCharacter extends EventDispatcher {
 
     mixer: AnimationMixer;
 
+    isSprinting: boolean;
+
     constructor(domElement: HTMLElement, scene: Scene) {
         super();
         if (domElement === undefined) {
@@ -70,6 +72,7 @@ export class ThirdPersonCharacter extends EventDispatcher {
         this.domElement = domElement;
         this.object = new Object3D();
         this.isLocked = false;
+        this.isSprinting = false;
 
         // Set to constrain the pitch of the camera
         // Range is 0 to Math.PI radians
@@ -77,7 +80,7 @@ export class ThirdPersonCharacter extends EventDispatcher {
         this.maxPolarAngle = Math.PI; // radians
 
         const scope = this;
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
         this.object.add(this.camera);
 
         this.focus = new Vector3(0, -1, -1.5);
@@ -205,6 +208,8 @@ export class ThirdPersonCharacter extends EventDispatcher {
             this.movementState = MovementState.Left;
         } else if (event.code == "KeyD" || event.code == "ArrowRight") {
             this.movementState = MovementState.Right;
+        } else if (event.code == "ShiftLeft") {
+            this.isSprinting = true;
         }
     }
     onKeyUp(event: KeyboardEvent) {
@@ -216,20 +221,26 @@ export class ThirdPersonCharacter extends EventDispatcher {
             this.movementState = MovementState.Idle;
         } else if ((event.code == "KeyD" || event.code == "ArrowRight") && this.movementState == MovementState.Right) {
             this.movementState = MovementState.Idle;
+        } else if (event.code == "ShiftLeft") {
+            this.isSprinting = false;
         }
     }
     update(deltaTime: number) {
+        var speed = _speed;
+        if (this.isSprinting) {
+            speed *= 2;
+        }
         if (this.movementState == MovementState.Forward) {
-            this.moveForward(deltaTime * _speed);
+            this.moveForward(deltaTime * speed);
         }
         if (this.movementState == MovementState.Back) {
-            this.moveForward(-deltaTime * _speed);
+            this.moveForward(-deltaTime * speed);
         }
         if (this.movementState == MovementState.Right) {
-            this.moveRight(deltaTime * _speed);
+            this.moveRight(deltaTime * speed);
         }
         if (this.movementState == MovementState.Left) {
-            this.moveRight(-deltaTime * _speed);
+            this.moveRight(-deltaTime * speed);
         }
         this.mixer.update(deltaTime);
     }
