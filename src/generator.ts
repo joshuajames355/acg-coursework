@@ -13,9 +13,11 @@ import {
     MeshPhongMaterial,
     Matrix4,
     BackSide,
+    MirroredRepeatWrapping,
 } from "three";
 
 import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
+import { grass_texture } from "./assets";
 
 //This function applies a single octave of perlin noise
 export function perlin_noise(x: number, y: number): number {
@@ -147,7 +149,11 @@ export function generate_terrain_parametric(width: number, height: number, offse
         128,
         128
     );
-    var mat = new MeshPhongMaterial({ color: 0x348c31 });
+    grass_texture.repeat.setX(width / 32);
+    grass_texture.repeat.setY(height / 32);
+    grass_texture.wrapS = MirroredRepeatWrapping;
+    grass_texture.wrapT = MirroredRepeatWrapping;
+    var mat = new MeshPhongMaterial({ map: grass_texture });
     mat.side = BackSide;
     var mesh = new Mesh(geometry, mat);
     mesh.translateX(offset.x);
