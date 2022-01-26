@@ -55,3 +55,13 @@ tex_loader.load("/art/grass.jpg", function (tex) {
     tex.flipY = false;
     grass_texture = tex;
 });
+
+export var skyscraper1_model: Mesh;
+export var skyscraper1_tex: Texture;
+gltf_loader.load("/art/skyscraper1/skyscraper.glb", function (gltf) {
+    skyscraper1_model = gltf.scene.children[0] as Mesh;
+});
+tex_loader.load("/art/skyscraper1/diffuse.png", function (tex) {
+    tex.flipY = false;
+    skyscraper1_tex = tex;
+});

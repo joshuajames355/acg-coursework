@@ -2,7 +2,7 @@
 
 import { BoxGeometry, Mesh, MeshBasicMaterial, MeshPhongMaterial, Object3D, Scene, Vector3 } from "three";
 import { randFloat } from "three/src/math/MathUtils";
-import { house_diffuse, house_model } from "./assets";
+import { house_diffuse, house_model, skyscraper1_model, skyscraper1_tex } from "./assets";
 
 export function generate_building(distance_to_centre: number, zoning: number, scene: Scene, pos: Vector3) {
     var height = 25 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 25);
@@ -14,14 +14,17 @@ export function generate_building(distance_to_centre: number, zoning: number, sc
     }
 }
 
-function generate_skyscraper(height: number, pos: Vector3): Object3D {
+export function generate_skyscraper(height: number, pos: Vector3): Object3D {
+    const FLOOR_HEIGHT = 400;
     var obj = new Object3D();
     for (var y = 0; y < height; y++) {
-        var box = new BoxGeometry(1, 1, 1); //low density residential
-        const material = new MeshBasicMaterial();
-        const mesh = new Mesh(box, material);
+        const material = new MeshPhongMaterial({ map: skyscraper1_tex });
+        const mesh = skyscraper1_model.clone();
+        mesh.material = material;
+
+        mesh.scale.setScalar(200);
         mesh.translateX(pos.x);
-        mesh.translateY(pos.y + y);
+        mesh.translateY(pos.y + y * FLOOR_HEIGHT);
         mesh.translateZ(pos.z);
         obj.add(mesh);
     }
