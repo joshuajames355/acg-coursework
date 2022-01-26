@@ -15,12 +15,7 @@ import {
 } from "three";
 import { character_run_anim, character_scene } from "./assets";
 
-const _euler = new Euler(0, 0, 0, "YXZ");
 const _vector = new Vector3();
-
-const _changeEvent = { type: "change" };
-const _lockEvent = { type: "lock" };
-const _unlockEvent = { type: "unlock" };
 
 const _PI_2 = Math.PI / 2;
 const _speed = 0.4;
@@ -83,7 +78,7 @@ export class ThirdPersonCharacter extends EventDispatcher {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
         this.object.add(this.camera);
 
-        this.focus = new Vector3(0, -1, -1.5);
+        this.focus = new Vector3(0, -1, -50);
 
         function onMouseMove(event: MouseEvent) {
             if (scope.isLocked === false) return;
@@ -181,20 +176,29 @@ export class ThirdPersonCharacter extends EventDispatcher {
             scope.domElement.ownerDocument.exitPointerLock();
         };
 
-        this.model = character_scene;
-        console.log(this.model);
+        this.model = character_scene.scene;
+        this.model.scale.setScalar(20);
         this.model.frustumCulled = false;
-        this.model.translateY(-2);
-        this.model.translateZ(-1.5);
+        this.model.translateY(-10);
+        this.model.translateZ(-40);
+        this.model.scale.setScalar(20);
         this.model.rotateY(_PI_2 * 2);
         this.object.add(this.model);
         scene.add(this.object);
 
-        //var group = new AnimationObjectGroup(this.model.children[0].children[2]);
+        this.model.traverse((object) => {
+            object.frustumCulled = false;
+        });
 
-        this.mixer = new AnimationMixer(this.model);
-        const action = this.mixer.clipAction(character_run_anim.clip);
-        action.play();
+        var mesh = this.model.children[0] as SkinnedMesh;
+
+        console.log(this.model);
+
+        this.mixer = new AnimationMixer(mesh);
+        character_scene.animations[0].optimize();
+
+        var action = this.mixer.clipAction(character_scene.animations[0]);
+        //action.play();
 
         this.connect();
     }
