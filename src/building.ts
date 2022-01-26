@@ -29,18 +29,15 @@ function generate_skyscraper(height: number, pos: Vector3): Object3D {
 }
 
 function generate_house(pos: Vector3) {
-    var mesh = house_model; //low density residential
-    console.log("house!");
-    console.log(pos);
+    var mesh = house_model.clone(); //low density residential
     const material = new MeshPhongMaterial();
     material.specular.setScalar(0);
     material.map = house_diffuse;
     mesh.material = material;
-    mesh.scale.setScalar(2);
-    mesh.position.setX(pos.x);
+    mesh.scale.setScalar(1);
+    mesh.position.setX(pos.x + 15);
     mesh.position.setY(pos.y);
-    mesh.position.setZ(pos.z);
-    mesh.geometry.computeBoundingSphere();
+    mesh.position.setZ(pos.z - 10);
     mesh.frustumCulled = false;
     return mesh;
 }
