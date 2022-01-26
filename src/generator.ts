@@ -139,6 +139,10 @@ export function generate_terrain(width: number, height: number, offset: Vector3 
     return mesh;
 }
 
+export function perlin_noise_actual() {
+    //return (perlin_noise_multiple_octaves(u * 4, v * 4, 4, 0.3) * 0.5 + 1) * 120 - 60;
+}
+
 export function generate_terrain_parametric(width: number, height: number, offset: Vector3 = new Vector3(0, 0, 0)) {
     var geometry = new ParametricGeometry(
         (u: number, v: number, y: Vector3) => {

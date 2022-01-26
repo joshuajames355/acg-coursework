@@ -5,7 +5,8 @@ import { randFloat } from "three/src/math/MathUtils";
 import { house_diffuse, house_model, skyscraper1_model, skyscraper1_tex } from "./assets";
 
 export function generate_building(distance_to_centre: number, zoning: number, scene: Scene, pos: Vector3) {
-    var height = 25 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 25);
+    var height = 25 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 2048);
+    console.log(height);
 
     if (height < 4) {
         scene.add(generate_house(pos));
@@ -37,7 +38,7 @@ function generate_house(pos: Vector3) {
     material.specular.setScalar(0);
     material.map = house_diffuse;
     mesh.material = material;
-    mesh.scale.setScalar(1);
+    mesh.scale.setScalar(20);
     mesh.position.setX(pos.x + 15);
     mesh.position.setY(pos.y);
     mesh.position.setZ(pos.z - 10);
