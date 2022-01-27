@@ -40,9 +40,9 @@ DefaultLoadingManager.onLoad = function () {
     generate_city(scene);
 
     controller = new ThirdPersonCharacter(renderer.domElement, scene);
+    controller.object.translateY(-50);
 
     scene.background = skybox_tex;
-    //const material = new MeshBasicMaterial({ color: 0xffffff, envMap: skybox_tex, refractionRatio: 0.95 });
 };
 DefaultLoadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
     console.log("Loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");

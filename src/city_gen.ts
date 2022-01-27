@@ -11,6 +11,7 @@ import {
     Euler,
     Mesh,
     MeshBasicMaterial,
+    Object3D,
 } from "three";
 import { randInt } from "three/src/math/MathUtils";
 import { road_diffuse, road_model, road_normal } from "./assets";
@@ -40,13 +41,13 @@ import { generate_building } from "./building";
 //either with the same gradient, continuing to infinity, or perpindicular
 
 //constants------------------------------------------------------------------------------------------------------------------
-const WIDTH = 8192;
-const HEIGHT = 8192;
-const OFFSET = new Vector3(-50, -120, -50);
+const WIDTH = 16384;
+const HEIGHT = 16384;
+const OFFSET = new Vector3(-1000, -140, -1000);
 
 const NUM_CENTRES = 3;
 const CENTRE_BOUNDS = 0.1; //city centers cannot be within this percentage of the edge
-const MIN_DISTANCE_BETWEEN_CENTRES_SQR = 819200; //(100 ^ 2) / (GRID_RATIO ^ 2);
+const MIN_DISTANCE_BETWEEN_CENTRES_SQR = 8192000; //(100 ^ 2) / (GRID_RATIO ^ 2);
 
 const DISTANCE_BETWEEN_ROADS = 2048;
 
@@ -56,7 +57,7 @@ export default function generate_city(scene: Scene) {
     road.material = new MeshPhongMaterial({ map: road_diffuse, normalMap: road_normal });
     road.scale.setScalar(0.4 * 16);
 
-    var ROAD_LENGTH = 16.5 * 16;
+    var ROAD_LENGTH = 16.75 * 16;
 
     //step 1---------------------------------------------------------------------------------------------------------------------
     console.log("City Generation Step 1: Terrain Generation...");
@@ -127,7 +128,6 @@ export default function generate_city(scene: Scene) {
 
         var x = roads[i].start.x;
         var y = roads[i].start.y;
-        console.log(roads[i]);
 
         while (y < roads[i].end.y) {
             var road_test = roadFromPoint(new Vector2(x, y), perp_grad);
@@ -185,11 +185,10 @@ export default function generate_city(scene: Scene) {
     for (var x = GAP_SIZE; x < WIDTH; x += GAP_SIZE) {
         for (var y = GAP_SIZE; y < WIDTH; y += GAP_SIZE) {
             if (isPossibleBuildingSpot(roads, new Vector2(x, y))) {
-                console.log("spot!");
-                var geometry = new BoxGeometry(10, 10, 10);
-                var mesh = new Mesh(geometry, new MeshBasicMaterial());
-                mesh.position.copy(new Vector3(OFFSET.x + x, OFFSET.y + 50, OFFSET.z + y));
-                scene.add(mesh);
+                //var geometry = new BoxGeometry(10, 10, 10);
+                //var mesh = new Mesh(geometry, new MeshBasicMaterial());
+                //mesh.position.copy(new Vector3(OFFSET.x + x, OFFSET.y + 50, OFFSET.z + y));
+                //scene.add(mesh);
                 blocks[Math.round(x / GAP_SIZE)][Math.round(y / GAP_SIZE)] = index;
                 index += 1;
             }
@@ -239,13 +238,12 @@ export default function generate_city(scene: Scene) {
     }
 
     blocks2.forEach((b: Block) => {
-        if (b.positons.length > 4) {
-            console.log("building!");
+        if (b.positons.length > 8) {
             var average = averageVector(b.positons).multiplyScalar(GAP_SIZE);
             var pos = new Vector3(average.x + OFFSET.x, 50 + OFFSET.y, average.y + OFFSET.z);
 
             var min_dist = city_centres.map((x: Vector2) => x.distanceTo(average)).sort()[0];
-            //console.log(min_dist);
+            console.log(b.positons.length);
 
             generate_building(min_dist, 0, scene, pos);
         }
@@ -439,10 +437,10 @@ function testNewRoad(newRoad: Road, roads: Road[]) {
             var count = 0;
             for (var y = 0; y < roads.length; y++) {
                 if (x != y) {
-                    if (circleCollision(roads[y], intersection, 1024)) count += 1;
+                    if (circleCollision(roads[y], intersection, 512)) count += 1;
                 }
             }
-            if (count > 1) return false;
+            if (count > 0) return false;
         }
     }
     return true;
@@ -456,7 +454,7 @@ function circleCollision(road: Road, centre: Vector2, radius: number) {
 }
 
 function isPossibleBuildingSpot(roads: Road[], spot: Vector2) {
-    var COLLISION_RADIUS = 256;
+    var COLLISION_RADIUS = 400;
     for (var x: number = 0; x < roads.length; x++) {
         if (circleCollision(roads[x], spot, COLLISION_RADIUS)) return false;
     }

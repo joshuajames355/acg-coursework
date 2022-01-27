@@ -6,7 +6,6 @@ import { house_diffuse, house_model, skyscraper1_model, skyscraper1_tex } from "
 
 export function generate_building(distance_to_centre: number, zoning: number, scene: Scene, pos: Vector3) {
     var height = 25 * Math.exp(-(distance_to_centre + randFloat(0, 50)) / 2048);
-    console.log(height);
 
     if (height < 4) {
         scene.add(generate_house(pos));

@@ -147,7 +147,7 @@ export function generate_terrain_parametric(width: number, height: number, offse
     var geometry = new ParametricGeometry(
         (u: number, v: number, y: Vector3) => {
             y.x = u * width;
-            y.y = (perlin_noise_multiple_octaves(u * 4, v * 4, 4, 0.3) * 0.5 + 1) * 40;
+            y.y = (perlin_noise_multiple_octaves(u * 16, v * 16, 4, 0.3) * 0.5 + 1) * 80 - 50;
             y.z = v * height;
         },
         128,

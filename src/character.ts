@@ -38,7 +38,7 @@ import { retargetBVH } from "./retarget.js";
 const _vector = new Vector3();
 
 const _PI_2 = Math.PI / 2;
-const _speed = 0.4;
+const _speed = 0.25;
 
 enum AnimState {
     Idle,
@@ -111,7 +111,7 @@ export class ThirdPersonCharacter extends EventDispatcher {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
         this.object.add(this.camera);
 
-        this.focus = new Vector3(0, -1, -50);
+        this.focus = new Vector3(0, 25, -50);
 
         function onMouseMove(event: MouseEvent) {
             if (scope.isLocked === false) return;
@@ -215,7 +215,7 @@ export class ThirdPersonCharacter extends EventDispatcher {
         //this.model.frustumCulled = false;
         this.model.translateY(-50);
         this.model.translateZ(0);
-        this.model.scale.setScalar(1.5);
+        this.model.scale.setScalar(3);
         this.model.rotateY(_PI_2 * 2);
         this.model.rotateZ(_PI_2);
         this.object.add(this.model);
@@ -248,9 +248,10 @@ export class ThirdPersonCharacter extends EventDispatcher {
 
         this.lastAction = this.walk;
         this.mixer.timeScale = 0.001;
-        this.walk.play();
 
-        this.animState = AnimState.Idle;
+        //this.mixer.clipAction(retargetBVH(character_idle2_anim, this.model.children[1])).play();
+        this.walk.play();
+        this.animState = AnimState.Walking;
 
         this.connect();
     }
@@ -285,20 +286,26 @@ export class ThirdPersonCharacter extends EventDispatcher {
         this.mixer.update(deltaTime);
 
         var speed = _speed;
+
         if (this.isSprinting) {
             speed *= 2;
             if (this.animState != AnimState.Running) {
-                this.run.crossFadeFrom(this.lastAction, 0.6, true).play();
                 this.run.enabled = true;
+                this.run.crossFadeFrom(this.lastAction, 0.6, true).play();
                 this.lastAction = this.run;
                 this.animState = AnimState.Running;
             }
-        } else {
+        } else if (this.movementState != MovementState.Idle) {
             if (this.animState != AnimState.Walking) {
-                this.walk.crossFadeFrom(this.lastAction, 0.6, true).play();
                 this.walk.enabled = true;
+                this.walk.crossFadeFrom(this.lastAction, 0.6, true).play();
                 this.lastAction = this.walk;
                 this.animState = AnimState.Walking;
+            }
+        } else {
+            if (this.animState != AnimState.Idle) {
+                this.animState = AnimState.Idle;
+                this.lastAction.warp(1, 0.1, 1).play();
             }
         }
         if (this.movementState == MovementState.Forward) {
