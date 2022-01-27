@@ -38,19 +38,38 @@ tex_loader.load("/art/house/diffus.png", function (tex) {
 });
 export var character_model: SkinnedMesh;
 export var character_scene: GLTF;
-gltf_loader.load("/art/character/character.gltf", function (gltf) {
-    character_model = gltf.scene.children[0] as SkinnedMesh;
+
+gltf_loader.load("/art/character2/character.glb", function (gltf) {
+    //character_model = gltf.scene.children[0] as SkinnedMesh;
     character_scene = gltf;
     console.log(gltf);
-}); /*
-fbx_loader.load("/art/character/character.fbx", function (fbx) {
-    character_model = fbx.children[0] as SkinnedMesh;
+});
+/*fbx_loader.load("art/character2/character.fbx", function (fbx) {
+    //character_model = fbx.children[0] as SkinnedMesh;
     character_scene = fbx;
 });*/
 export var character_run_anim: BVH;
-bvh_loader.load("/art/character/07_01.bvh", function (bvh) {
+bvh_loader.load("/art/character2/09_02.bvh", function (bvh) {
     character_run_anim = bvh;
 });
+export var character_walk_anim: BVH;
+bvh_loader.load("/art/character2/07_01.bvh", function (bvh) {
+    character_walk_anim = bvh;
+});
+export var character_jump_anim: BVH;
+bvh_loader.load("/art/character2/02_04.bvh", function (bvh) {
+    character_jump_anim = bvh;
+});
+export var character_idle1_anim: BVH;
+bvh_loader.load("/art/character2/02_05.bvh", function (bvh) {
+    character_idle1_anim = bvh;
+});
+
+export var character_idle2_anim: BVH;
+bvh_loader.load("/art/character2/02_06.bvh", function (bvh) {
+    character_idle2_anim = bvh;
+});
+
 export var grass_texture: Texture;
 tex_loader.load("/art/grass.jpg", function (tex) {
     tex.flipY = false;

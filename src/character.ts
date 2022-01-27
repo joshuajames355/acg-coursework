@@ -12,13 +12,39 @@ import {
     Spherical,
     AnimationMixer,
     AnimationObjectGroup,
+    LoopOnce,
+    LoopRepeat,
+    Skeleton,
+    Bone,
+    MeshBasicMaterial,
+    SkeletonHelper,
+    AnimationClip,
+    AnimationAction,
+    Quaternion,
 } from "three";
-import { character_run_anim, character_scene } from "./assets";
+import { lerp } from "three/src/math/MathUtils";
+import {
+    character_idle1_anim,
+    character_idle2_anim,
+    character_jump_anim,
+    character_run_anim,
+    character_scene,
+    character_walk_anim,
+} from "./assets";
+
+// @ts-ignore
+import { retargetBVH } from "./retarget.js";
 
 const _vector = new Vector3();
 
 const _PI_2 = Math.PI / 2;
 const _speed = 0.4;
+
+enum AnimState {
+    Idle,
+    Walking,
+    Running,
+}
 
 enum MovementState {
     Idle,
@@ -56,6 +82,13 @@ export class ThirdPersonCharacter extends EventDispatcher {
     mixer: AnimationMixer;
 
     isSprinting: boolean;
+
+    run: AnimationAction;
+    walk: AnimationAction;
+    jump: AnimationAction;
+
+    animState: AnimState;
+    lastAction: AnimationAction;
 
     constructor(domElement: HTMLElement, scene: Scene) {
         super();
@@ -176,13 +209,15 @@ export class ThirdPersonCharacter extends EventDispatcher {
             scope.domElement.ownerDocument.exitPointerLock();
         };
 
-        this.model = character_scene.scene;
-        this.model.scale.setScalar(20);
-        this.model.frustumCulled = false;
-        this.model.translateY(-10);
-        this.model.translateZ(-40);
-        this.model.scale.setScalar(20);
+        this.model = character_scene.scene.children[0];
+        console.log(this.model);
+        //this.model.scale.setScalar(20);
+        //this.model.frustumCulled = false;
+        this.model.translateY(-50);
+        this.model.translateZ(0);
+        this.model.scale.setScalar(1.5);
         this.model.rotateY(_PI_2 * 2);
+        this.model.rotateZ(_PI_2);
         this.object.add(this.model);
         scene.add(this.object);
 
@@ -190,15 +225,32 @@ export class ThirdPersonCharacter extends EventDispatcher {
             object.frustumCulled = false;
         });
 
-        var mesh = this.model.children[0] as SkinnedMesh;
+        //var mesh = this.model.children[0];
 
         console.log(this.model);
 
-        this.mixer = new AnimationMixer(mesh);
-        character_scene.animations[0].optimize();
+        //const skeleton = new Skeleton([this.model.children[0].children[0] as Bone]);
+        //mesh.bind(skeleton);
 
-        var action = this.mixer.clipAction(character_scene.animations[0]);
-        //action.play();
+        var test = new AnimationObjectGroup(
+            this.model.children[1],
+            this.model.children[2],
+            this.model.children[3],
+            this.model.children[4],
+            this.model.children[5]
+        );
+
+        this.mixer = new AnimationMixer(test);
+
+        this.run = this.mixer.clipAction(retargetBVH(character_run_anim, this.model.children[1]));
+        this.walk = this.mixer.clipAction(retargetBVH(character_walk_anim, this.model.children[1]));
+        this.jump = this.mixer.clipAction(retargetBVH(character_jump_anim, this.model.children[1]));
+
+        this.lastAction = this.walk;
+        this.mixer.timeScale = 0.001;
+        this.walk.play();
+
+        this.animState = AnimState.Idle;
 
         this.connect();
     }
@@ -230,9 +282,24 @@ export class ThirdPersonCharacter extends EventDispatcher {
         }
     }
     update(deltaTime: number) {
+        this.mixer.update(deltaTime);
+
         var speed = _speed;
         if (this.isSprinting) {
             speed *= 2;
+            if (this.animState != AnimState.Running) {
+                this.run.crossFadeFrom(this.lastAction, 0.6, true).play();
+                this.run.enabled = true;
+                this.lastAction = this.run;
+                this.animState = AnimState.Running;
+            }
+        } else {
+            if (this.animState != AnimState.Walking) {
+                this.walk.crossFadeFrom(this.lastAction, 0.6, true).play();
+                this.walk.enabled = true;
+                this.lastAction = this.walk;
+                this.animState = AnimState.Walking;
+            }
         }
         if (this.movementState == MovementState.Forward) {
             this.moveForward(deltaTime * speed);
@@ -246,6 +313,15 @@ export class ThirdPersonCharacter extends EventDispatcher {
         if (this.movementState == MovementState.Left) {
             this.moveRight(-deltaTime * speed);
         }
-        this.mixer.update(deltaTime);
+
+        if (this.movementState != MovementState.Idle) {
+            var cameraEuler = new Euler().setFromQuaternion(this.camera.quaternion);
+            cameraEuler.z += _PI_2 * 2;
+            var modelEuler = new Euler().setFromQuaternion(this.model.quaternion);
+            cameraEuler.x = modelEuler.x;
+            cameraEuler.y = modelEuler.y;
+            var quat = new Quaternion().setFromEuler(cameraEuler);
+            this.model.quaternion.slerp(quat, deltaTime * 0.01);
+        }
     }
 }
