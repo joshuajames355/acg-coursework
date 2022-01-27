@@ -1,7 +1,7 @@
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { BVH, BVHLoader } from "three/examples/jsm/loaders/BVHLoader.js";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
-import { TextureLoader, Mesh, Texture, SkinnedMesh, Scene, Group } from "three";
+import { CubeTextureLoader, TextureLoader, Mesh, Texture, SkinnedMesh, Scene, Group, CubeTexture } from "three";
 
 //loads all assets and writes them to global vars
 
@@ -9,6 +9,7 @@ const gltf_loader = new GLTFLoader();
 const tex_loader = new TextureLoader();
 const bvh_loader = new BVHLoader();
 const fbx_loader = new FBXLoader();
+const cube_loader = new CubeTextureLoader();
 
 export var road_model: Mesh;
 export var road_diffuse: Texture;
@@ -36,10 +37,10 @@ tex_loader.load("/art/house/diffus.png", function (tex) {
     house_diffuse = tex;
 });
 export var character_model: SkinnedMesh;
-export var character_scene: Group;
-gltf_loader.load("/art/character/character.glb", function (gltf) {
+export var character_scene: GLTF;
+gltf_loader.load("/art/character/character.gltf", function (gltf) {
     character_model = gltf.scene.children[0] as SkinnedMesh;
-    character_scene = gltf.scene;
+    character_scene = gltf;
     console.log(gltf);
 }); /*
 fbx_loader.load("/art/character/character.fbx", function (fbx) {
@@ -65,3 +66,20 @@ tex_loader.load("/art/skyscraper1/diffuse.png", function (tex) {
     tex.flipY = false;
     skyscraper1_tex = tex;
 });
+
+//https://opengameart.org/content/cloudy-skyboxes
+export var skybox_tex: CubeTexture;
+cube_loader.load(
+    [
+        "/art/skybox/bluecloud_ft.jpg",
+        "/art/skybox/bluecloud_bk.jpg",
+        "/art/skybox/bluecloud_up.jpg",
+        "/art/skybox/bluecloud_dn.jpg",
+        "/art/skybox/bluecloud_rt.jpg",
+        "/art/skybox/bluecloud_lf.jpg",
+    ],
+
+    function (cube) {
+        skybox_tex = cube;
+    }
+);
